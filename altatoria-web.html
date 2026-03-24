@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Altatoria</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Jost:wght@200;300&display=swap" rel="stylesheet"/>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --midnight: #1A1A1A;
+  --navy:     #1C2535;
+  --gold:     #A8905A;
+  --gold-lt:  #C4A96D;
+  --ivory:    #F5F2EC;
+  --stone:    #8A8478;
+  --serif:    'Cormorant Garamond', Georgia, serif;
+  --sans:     'Jost', 'Helvetica Neue', sans-serif;
+}
+
+html { font-size: 16px; scroll-behavior: smooth; }
+
+body {
+  background: var(--midnight);
+  color: var(--ivory);
+  font-family: var(--serif);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+  cursor: none;
+}
+
+::-webkit-scrollbar { width: 2px; }
+::-webkit-scrollbar-thumb { background: rgba(168,144,90,0.35); }
+
+/* ── CURSOR ── */
+.cur {
+  position: fixed; top: 0; left: 0;
+  width: 5px; height: 5px;
+  background: var(--gold);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9999;
+  transform: translate(-50%,-50%);
+  transition: width 0.3s ease, height 0.3s ease, background 0.3s ease;
+}
+.cur.expand {
+  width: 28px; height: 28px;
+  background: transparent;
+  border: 1px solid var(--gold);
+}
+
+/* ── NAV ── */
+nav {
+  position: fixed; top: 0; left: 0; right: 0;
+  z-index: 500;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 40px 72px;
+  transition: padding 0.5s ease, background 0.5s ease, border-color 0.5s ease;
+  border-bottom: 1px solid transparent;
+}
+nav.stuck {
+  padding: 22px 72px;
+  background: rgba(26,26,26,0.97);
+  border-bottom-color: rgba(168,144,90,0.09);
+  backdrop-filter: blur(20px);
+}
+.nav-logo {
+  font-family: var(--serif);
+  font-size: 0.95rem; font-weight: 300;
+  letter-spacing: 0.28em; text-transform: uppercase;
+  color: var(--ivory);
+  text-decoration: none;
+}
+.nav-links {
+  list-style: none;
+  display: flex; gap: 48px;
+}
+.nav-links a {
+  font-family: var(--sans);
+  font-size: 0.57rem; font-weight: 200;
+  letter-spacing: 0.22em; text-transform: uppercase;
+  color: rgba(245,242,236,0.32);
+  text-decoration: none;
+  transition: color 0.4s;
+}
+.nav-links a:hover { color: var(--gold-lt); }
+
+/* ── HERO ── */
+#hero {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 0 72px 100px;
+  overflow: hidden;
+  background: var(--midnight);
+}
+
+/* Deep Navy ambient glow — top right */
+#hero::before {
+  content: '';
+  position: absolute;
+  top: -10%; right: -5%;
+  width: 65%; height: 75%;
+  background: radial-gradient(ellipse at center, rgba(28,37,53,0.7) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+/* Subtle bottom fade */
+#hero::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0; height: 30%;
+  background: linear-gradient(to bottom, transparent, var(--midnight));
+  pointer-events: none;
+}
+
+/* Ghost watermark */
+.hero-wm {
+  position: absolute;
+  right: -1vw; top: 50%;
+  transform: translateY(-52%);
+  font-family: var(--serif);
+  font-size: clamp(100px, 18vw, 280px);
+  font-weight: 300;
+  letter-spacing: 0.05em;
+  color: rgba(245,242,236,0.018);
+  line-height: 1;
+  user-select: none;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+/* Left vertical rule */
+.hero-vline {
+  position: absolute;
+  left: 72px; top: 140px; bottom: 100px;
+  width: 1px;
+  background: linear-gradient(to bottom,
+    transparent 0%,
+    rgba(168,144,90,0.2) 30%,
+    rgba(168,144,90,0.2) 70%,
+    transparent 100%
+  );
+}
+
+.hero-body {
+  position: relative;
+  z-index: 2;
+  padding-left: 40px;
+}
+
+.hero-eyebrow {
+  font-family: var(--sans);
+  font-size: 0.55rem; font-weight: 200;
+  letter-spacing: 0.42em; text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 30px;
+  display: flex; align-items: center; gap: 18px;
+  opacity: 0; animation: up 1s 0.3s ease forwards;
+}
+.hero-eyebrow::before {
+  content: '';
+  width: 32px; height: 1px;
+  background: var(--gold); opacity: 0.5; flex-shrink: 0;
+}
+
+h1.hero-h1 {
+  font-size: clamp(52px, 7.8vw, 116px);
+  font-weight: 300;
+  line-height: 1.0;
+  letter-spacing: 0.01em;
+  color: var(--ivory);
+  opacity: 0; animation: up 1.1s 0.55s ease forwards;
+}
+h1.hero-h1 em {
+  font-style: italic;
+  color: rgba(196,169,109,0.7);
+}
+
+.hero-sub {
+  margin-top: 40px;
+  font-family: var(--sans);
+  font-size: 0.58rem; font-weight: 200;
+  letter-spacing: 0.28em; text-transform: uppercase;
+  color: rgba(245,242,236,0.18);
+  opacity: 0; animation: up 1s 0.82s ease forwards;
+}
+
+/* Scroll indicator */
+.scroll-ind {
+  position: absolute;
+  right: 72px; bottom: 44px;
+  display: flex; flex-direction: column;
+  align-items: center; gap: 10px;
+  opacity: 0; animation: fadein 1s 1.8s ease forwards;
+  cursor: default;
+}
+.scroll-ind span {
+  font-family: var(--sans);
+  font-size: 0.48rem; font-weight: 200;
+  letter-spacing: 0.3em; text-transform: uppercase;
+  color: rgba(168,144,90,0.35);
+  writing-mode: vertical-rl;
+}
+.scroll-bar {
+  width: 1px; height: 48px;
+  background: linear-gradient(to bottom, rgba(168,144,90,0.4), transparent);
+  animation: pulse 2.4s 2.2s ease-in-out infinite;
+}
+
+/* ── DIVIDER ── */
+.rule-full {
+  height: 1px;
+  background: linear-gradient(to right, transparent, rgba(168,144,90,0.12), transparent);
+}
+
+/* ── SHARED SECTION ── */
+.s {
+  padding: 128px 72px;
+}
+.s-navy  { background: var(--navy); }
+.s-dark  { background: var(--midnight); }
+.s-deep  { background: #141413; }
+
+.eyebrow {
+  font-family: var(--sans);
+  font-size: 0.53rem; font-weight: 200;
+  letter-spacing: 0.38em; text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 18px;
+  display: flex; align-items: center; gap: 14px;
+}
+.eyebrow::after {
+  content: '';
+  width: 40px; height: 1px;
+  background: var(--gold); opacity: 0.3;
+}
+
+.s-title {
+  font-size: clamp(34px, 4.8vw, 66px);
+  font-weight: 300;
+  line-height: 1.06;
+  color: var(--ivory);
+}
+.s-title em { font-style: italic; color: var(--gold-lt); }
+
+.gold-bar {
+  width: 40px; height: 1px;
+  background: var(--gold);
+  opacity: 0.3;
+  margin: 32px 0;
+}
+
+/* ── ABOUT ── */
+#about .cols {
+  display: grid;
+  grid-template-columns: 1fr 1.6fr;
+  gap: 96px;
+  align-items: start;
+  margin-top: 68px;
+}
+.about-quote {
+  font-size: clamp(18px, 2vw, 26px);
+  font-weight: 300; font-style: italic;
+  line-height: 1.6;
+  color: rgba(245,242,236,0.55);
+  border-top: 1px solid rgba(168,144,90,0.18);
+  padding-top: 24px;
+}
+.about-attr {
+  font-family: var(--sans);
+  font-size: 0.52rem; font-weight: 200;
+  letter-spacing: 0.25em; text-transform: uppercase;
+  color: rgba(168,144,90,0.45);
+  margin-top: 18px;
+}
+.ghost-year {
+  font-size: clamp(64px, 9vw, 128px);
+  font-weight: 300;
+  color: rgba(168,144,90,0.06);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  margin-top: 20px;
+  user-select: none;
+}
+.about-text p {
+  font-size: clamp(15px, 1.3vw, 18px);
+  line-height: 1.9;
+  color: rgba(245,242,236,0.42);
+  margin-bottom: 20px;
+}
+.about-text p strong {
+  color: rgba(245,242,236,0.72);
+  font-weight: 400;
+}
+.small-caps-row {
+  font-family: var(--sans);
+  font-size: 0.56rem; font-weight: 200;
+  letter-spacing: 0.28em; text-transform: uppercase;
+  color: rgba(245,242,236,0.14);
+  line-height: 2.2;
+}
+
+/* ── PRINCIPLES ── */
+#principles .cols {
+  margin-top: 68px;
+  border-top: 1px solid rgba(168,144,90,0.1);
+}
+.pillars {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+}
+.pillar {
+  padding: 52px 52px 52px 0;
+  border-right: 1px solid rgba(168,144,90,0.07);
+}
+.pillar:nth-child(2) { padding-left: 52px; }
+.pillar:last-child   { border-right: none; padding-right: 0; padding-left: 52px; }
+
+.p-num {
+  font-family: var(--serif);
+  font-size: 3rem; font-weight: 300;
+  color: rgba(168,144,90,0.1);
+  line-height: 1; margin-bottom: 16px;
+}
+.p-title {
+  font-size: 1.15rem; font-weight: 400;
+  letter-spacing: 0.02em;
+  color: var(--ivory);
+  margin-bottom: 14px;
+}
+.p-body {
+  font-family: var(--sans);
+  font-size: 0.6rem; font-weight: 200;
+  letter-spacing: 0.06em; line-height: 2;
+  color: rgba(245,242,236,0.28);
+}
+
+/* ── CONTACT ── */
+#contact {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+.contact-title {
+  font-size: clamp(30px, 5vw, 68px);
+  font-weight: 300;
+  line-height: 1.1;
+  color: var(--ivory);
+  margin: 20px 0 10px;
+}
+.contact-title em { font-style: italic; color: var(--gold-lt); }
+.contact-note {
+  font-family: var(--sans);
+  font-size: 0.58rem; font-weight: 200;
+  letter-spacing: 0.18em;
+  color: rgba(245,242,236,0.18);
+  line-height: 2.3; margin-bottom: 48px;
+}
+.contact-email {
+  font-family: var(--serif);
+  font-size: 1rem; font-weight: 300;
+  letter-spacing: 0.1em;
+  color: var(--ivory);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(168,144,90,0.25);
+  padding-bottom: 4px;
+  transition: color 0.35s, border-color 0.35s;
+}
+.contact-email:hover { color: var(--gold-lt); border-color: var(--gold-lt); }
+
+.offices {
+  display: flex; gap: 80px;
+  margin-top: 60px;
+  padding-top: 44px;
+  border-top: 1px solid rgba(168,144,90,0.08);
+}
+.office-label {
+  font-family: var(--sans);
+  font-size: 0.5rem; font-weight: 200;
+  letter-spacing: 0.3em; text-transform: uppercase;
+  color: var(--gold);
+  opacity: 0.7; margin-bottom: 10px;
+}
+.office-addr {
+  font-family: var(--serif);
+  font-size: 0.88rem; font-weight: 300;
+  color: rgba(245,242,236,0.24);
+  line-height: 1.85;
+}
+
+/* ── FOOTER ── */
+footer {
+  padding: 34px 72px;
+  border-top: 1px solid rgba(168,144,90,0.06);
+  display: flex; justify-content: space-between; align-items: center;
+}
+.f-logo {
+  font-family: var(--serif);
+  font-size: 0.82rem; font-weight: 300;
+  letter-spacing: 0.22em; text-transform: uppercase;
+  color: rgba(245,242,236,0.16);
+}
+.f-tag {
+  font-family: var(--serif);
+  font-style: italic; font-size: 0.85rem;
+  color: rgba(168,144,90,0.2);
+}
+.f-copy {
+  font-family: var(--sans);
+  font-size: 0.5rem; font-weight: 200;
+  letter-spacing: 0.18em;
+  color: rgba(245,242,236,0.1);
+}
+
+/* ── REVEAL ── */
+.rv { opacity: 0; transform: translateY(22px); transition: opacity 0.9s ease, transform 0.9s ease; }
+.rv.v { opacity: 1; transform: none; }
+.d1 { transition-delay: 0.12s; }
+.d2 { transition-delay: 0.26s; }
+.d3 { transition-delay: 0.42s; }
+
+/* ── ANIMATIONS ── */
+@keyframes up {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes fadein {
+  from { opacity: 0; } to { opacity: 1; }
+}
+@keyframes pulse {
+  0%, 100% { opacity: 0.4; transform: scaleY(1); }
+  50%       { opacity: 1;   transform: scaleY(1.06); }
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 860px) {
+  nav, nav.stuck { padding: 24px 28px; }
+  .nav-links { display: none; }
+  #hero { padding: 0 28px 84px; }
+  .hero-body { padding-left: 20px; }
+  .hero-vline { left: 28px; }
+  .scroll-ind { right: 28px; }
+  .s { padding: 88px 28px; }
+  #about .cols { grid-template-columns: 1fr; gap: 48px; }
+  .pillars { grid-template-columns: 1fr; }
+  .pillar {
+    border-right: none; padding: 36px 0 !important;
+    border-bottom: 1px solid rgba(168,144,90,0.07);
+  }
+  .pillar:last-child { border-bottom: none; }
+  .offices { flex-direction: column; gap: 28px; }
+  footer { padding: 28px; flex-direction: column; gap: 14px; text-align: center; }
+}
+</style>
+</head>
+<body>
+
+<div class="cur" id="cur"></div>
+
+<!-- NAV -->
+<nav id="nav">
+  <a href="#" class="nav-logo">Altatoria</a>
+  <ul class="nav-links">
+    <li><a href="#about">About</a></li>
+    <li><a href="#principles">Principles</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+</nav>
+
+<!-- ══ HERO ══ -->
+<section id="hero">
+  <div class="hero-wm">ALTATORIA</div>
+  <div class="hero-vline"></div>
+
+  <div class="hero-body">
+    <p class="hero-eyebrow">Global Holding Company</p>
+    <h1 class="hero-h1">
+      Capital built<br>to <em>endure</em><br>generations.
+    </h1>
+    <p class="hero-sub">Geneva &nbsp;·&nbsp; London &nbsp;·&nbsp; Est. 1987</p>
+  </div>
+
+  <div class="scroll-ind">
+    <span>Scroll</span>
+    <div class="scroll-bar"></div>
+  </div>
+</section>
+
+<div class="rule-full"></div>
+
+<!-- ══ ABOUT ══ -->
+<section id="about" class="s s-dark">
+  <div class="eyebrow rv">The House</div>
+  <h2 class="s-title rv d1">A house built for<br>the <em>long horizon</em>.</h2>
+
+  <div class="cols">
+    <div class="rv d1">
+      <blockquote class="about-quote">
+        "The rarest form of capital is not money — it is the discipline to hold."
+      </blockquote>
+      <p class="about-attr">Founding Principle</p>
+      <div class="ghost-year">1987</div>
+    </div>
+
+    <div class="about-text rv d2">
+      <p>Altatoria is a privately held global holding company, founded on the conviction that enduring value cannot be hurried. We do not manage funds. We do not seek liquidity events.</p>
+      <p>We <strong>acquire exceptional businesses</strong> and hold them indefinitely — not as a strategy, but as a philosophy. Our capital is patient because our ownership is permanent.</p>
+      <p>Headquartered across Geneva and London, Altatoria serves a singular mandate: to compound capital across generations without compromise.</p>
+      <div class="gold-bar"></div>
+      <p class="small-caps-row">Discipline &nbsp;·&nbsp; Compounding &nbsp;·&nbsp; Permanence</p>
+    </div>
+  </div>
+</section>
+
+<div class="rule-full"></div>
+
+<!-- ══ PRINCIPLES ══ -->
+<section id="principles" class="s s-navy">
+  <div class="eyebrow rv">Our Convictions</div>
+  <h2 class="s-title rv d1">Three principles,<br><em>held without revision</em>.</h2>
+
+  <div class="cols">
+    <div class="pillars">
+      <div class="pillar rv d1">
+        <div class="p-num">I</div>
+        <div class="p-title">Permanence of Capital</div>
+        <p class="p-body">We do not exit. Our investments are held indefinitely, across economic cycles — giving management the rarest gift in modern finance: the freedom to think in decades.</p>
+      </div>
+      <div class="pillar rv d2">
+        <div class="p-num">II</div>
+        <div class="p-title">Quality Without Compromise</div>
+        <p class="p-body">We acquire only businesses of genuine distinction — characterised by irreplaceable assets, structural pricing power, and operators of exceptional character.</p>
+      </div>
+      <div class="pillar rv d3">
+        <div class="p-num">III</div>
+        <div class="p-title">Disciplined Restraint</div>
+        <p class="p-body">We say no far more than we say yes. Capital is deployed rarely, deliberately, and only when conviction is unambiguous and alignment complete.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="rule-full"></div>
+
+<!-- ══ CONTACT ══ -->
+<section id="contact" class="s s-deep">
+  <div class="eyebrow rv" style="justify-content:center;">Enquiries</div>
+  <h2 class="contact-title rv d1">
+    We engage where<br>there is <em>genuine</em> alignment.
+  </h2>
+  <p class="contact-note rv d2">
+    Introductions by arrangement only.<br>
+    All qualified enquiries receive a response within five business days.
+  </p>
+  <a href="mailto:office@altatoria.com" class="contact-email rv d2">office@altatoria.com</a>
+
+  <div class="offices rv d3">
+    <div>
+      <div class="office-label">Geneva</div>
+      <div class="office-addr">Rue de Rive 12<br>1204 Genève, Switzerland</div>
+    </div>
+    <div>
+      <div class="office-label">London</div>
+      <div class="office-addr">3 St James's Square<br>London SW1Y 4JU</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ FOOTER ══ -->
+<footer>
+  <div class="f-logo">Altatoria</div>
+  <div class="f-tag">Built to endure.</div>
+  <div class="f-copy">© Altatoria Holdings AG · 2024</div>
+</footer>
+
+<script>
+// Cursor
+const cur = document.getElementById('cur');
+document.addEventListener('mousemove', e => {
+  cur.style.left = e.clientX + 'px';
+  cur.style.top  = e.clientY + 'px';
+});
+document.querySelectorAll('a').forEach(el => {
+  el.addEventListener('mouseenter', () => cur.classList.add('expand'));
+  el.addEventListener('mouseleave', () => cur.classList.remove('expand'));
+});
+
+// Sticky nav
+const nav = document.getElementById('nav');
+window.addEventListener('scroll', () => {
+  nav.classList.toggle('stuck', window.scrollY > 60);
+}, { passive: true });
+
+// Scroll reveal
+const io = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) { e.target.classList.add('v'); io.unobserve(e.target); }
+  });
+}, { threshold: 0.1, rootMargin: '0px 0px -44px 0px' });
+document.querySelectorAll('.rv').forEach(el => io.observe(el));
+</script>
+</body>
+</html>
